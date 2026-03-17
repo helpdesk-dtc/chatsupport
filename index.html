@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Helpdesk Chatbot</title>
+
+<!-- Font -->
+
+<link href="https://fonts.googleapis.com/css2?family=Prompt&display=swap" rel="stylesheet">
+
+<!-- Tailwind -->
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+body {
+  font-family: 'Prompt', sans-serif;
+}
+
+/* Chat bubble */
+.chat-bubble {
+  max-width: 70%;
+  padding: 12px 16px;
+  border-radius: 16px;
+  margin-bottom: 10px;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+/* bot */
+.bot {
+  background: #1e293b;
+  color: #e2e8f0;
+  border-bottom-left-radius: 4px;
+}
+
+/* user */
+.user {
+  background: #22c55e;
+  color: white;
+  border-bottom-right-radius: 4px;
+  margin-left: auto;
+}
+
+/* input */
+.input-box {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: white;
+}
+
+.input-box::placeholder {
+  color: #94a3b8;
+}
+</style>
+
+</head>
+
+<body class="bg-slate-900 text-white flex flex-col h-screen">
+
+<!-- Header -->
+
+<div class="flex justify-between items-center p-4 border-b border-slate-700">
+  <h1 class="text-lg">Helpdesk Chatbot</h1>
+  <button onclick="newChat()" class="text-sm bg-slate-700 px-3 py-1 rounded-lg hover:bg-slate-600">
+    New Chat
+  </button>
+</div>
+
+<!-- Chat -->
+
+<div id="chat" class="flex-1 overflow-y-auto p-6"></div>
+
+<!-- Input -->
+
+<div class="p-4 border-t border-slate-700 flex gap-2">
+  <input id="input"
+    class="input-box flex-1 px-4 py-2 rounded-xl outline-none"
+    placeholder="พิมพ์คำถาม..." />
+
+<button onclick="send()"
+ class="bg-green-500 hover:bg-green-600 px-5 rounded-xl">
+Send </button>
+
+</div>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbw7t445cU19YzDpl86xY_5S4prPBvuLjJJqU2mf5E1H3o1meWsGafEW9rroqsS5xjJY/exec";
+
+function addMessage(text, sender) {
+  const chat = document.getElementById("chat");
+
+  const msg = document.createElement("div");
+  msg.className = `chat-bubble ${sender}`;
+  msg.innerText = text;
+
+  chat.appendChild(msg);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+async function send() {
+  const input = document.getElementById("input");
+  const text = input.value.trim();
+  if (!text) return;
+
+  addMessage(text, "user");
+  input.value = "";
+
+  // loading
+  const loading = document.createElement("div");
+  loading.className = "chat-bubble bot";
+  loading.innerText = "กำลังพิมพ์...";
+  document.getElementById("chat").appendChild(loading);
+
+  try {
+    const res = await fetch(API_URL + "?q=" + encodeURIComponent(text));
+    const data = await res.json();
+
+    loading.remove();
+    addMessage(data.reply || "ไม่พบคำตอบ", "bot");
+
+  } catch (err) {
+    loading.remove();
+    addMessage("เกิดข้อผิดพลาด", "bot");
+  }
+}
+
+function newChat() {
+  document.getElementById("chat").innerHTML = "";
+}
+
+// Enter to send
+document.getElementById("input").addEventListener("keypress", function(e){
+  if(e.key === "Enter"){
+    send();
+  }
+});
+</script>
+
+</body>
+</html>
